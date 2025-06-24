@@ -183,9 +183,3 @@ docker-compose down
   - Experiment with firewall rules
   - Add monitoring tools like Prometheus and Grafana
 - **Simulate legitimate traffic:** Use tools like `ab`, JMeter, or Locust to generate normal user traffic alongside the attack.
-
----
-
-## License
-
-This project is open-source and available under the MIT License. See the `LICENSE` file for more details.
