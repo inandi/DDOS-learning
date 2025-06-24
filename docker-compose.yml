@@ -1,0 +1,30 @@
+version: '3.8'
+
+services:
+  victim:
+    build: ./victim  # Build the victim server from the victim directory
+    ports:
+      - "80:80" # Map host port 80 to container port 80
+    networks:
+      - ddos_net  # Connect to the isolated DDOS network
+    container_name: ddos_victim  # Fixed name for easy log access (do not scale victim)
+    restart: unless-stopped
+    # Set kernel parameters to make the victim more vulnerable to SYN flood
+    sysctls:
+      - net.ipv4.tcp_max_syn_backlog=2 # Lower the SYN backlog to 2 (very easy to overwhelm)
+      - net.core.somaxconn=2 # Lower the socket max connections to 2
+    mem_limit: 64m  # Limit memory to 64MB
+    cpus: 0.1      # Limit CPU to 10%
+
+  attacker:
+    build: ./attacker  # Build the attacker image from the attacker directory
+    depends_on:
+      - victim # Ensure victim is up before attacker
+    networks:
+      - ddos_net  # Connect to the same isolated network
+    # container_name intentionally omitted to allow scaling
+    command: /bin/bash -c "sleep 10 && /attack.sh ddos_victim 80 1000000"  # Wait for victim, then attack
+
+networks:
+  ddos_net:
+    driver: bridge  # Isolated bridge network for attack traffic only
